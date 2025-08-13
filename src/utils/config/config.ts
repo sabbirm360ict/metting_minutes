@@ -13,6 +13,8 @@ interface ENV {
   EMAIL_SENDER_EMAIL_ID: string | undefined;
   EMAIL_SENDER_PASS: string | undefined;
   JWT_SECRET: string | undefined;
+  OPENAI_API_KEY: string | undefined;
+  HUGGING_FACE_API_KEY: string | undefined;
 }
 
 interface Config {
@@ -25,6 +27,8 @@ interface Config {
   EMAIL_SENDER_EMAIL_ID: string;
   EMAIL_SENDER_PASS: string;
   JWT_SECRET: string;
+  OPENAI_API_KEY: string;
+  HUGGING_FACE_API_KEY: string;
 }
 
 const getConfig = (): ENV => {
@@ -38,6 +42,8 @@ const getConfig = (): ENV => {
     EMAIL_SENDER_EMAIL_ID: process.env.EMAIL_SENDER_EMAIL_ID,
     EMAIL_SENDER_PASS: process.env.EMAIL_SENDER_PASS,
     JWT_SECRET: process.env.JWT_SECRET,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    HUGGING_FACE_API_KEY: process.env.HUGGING_FACE_API_KEY,
   };
 };
 

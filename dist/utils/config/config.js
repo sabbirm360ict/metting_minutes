@@ -17,6 +17,8 @@ const getConfig = () => {
         EMAIL_SENDER_EMAIL_ID: process.env.EMAIL_SENDER_EMAIL_ID,
         EMAIL_SENDER_PASS: process.env.EMAIL_SENDER_PASS,
         JWT_SECRET: process.env.JWT_SECRET,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+        HUGGING_FACE_API_KEY: process.env.HUGGING_FACE_API_KEY,
     };
 };
 const getSanitizeConfig = (config) => {
