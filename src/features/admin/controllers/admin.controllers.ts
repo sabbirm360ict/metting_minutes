@@ -10,5 +10,14 @@ class AdminControllers extends AbstractControllers {
   constructor() {
     super();
   }
+
+  public processAudio = this.asyncWrapper.wrap(
+    null,
+    async (req: Request, res: Response) => {
+      const { code, ...rest } = await this.services.processAudio(req);
+
+      res.status(code).json(rest);
+    }
+  );
 }
 export default AdminControllers;

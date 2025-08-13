@@ -14,6 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ffmpeg_static_1 = __importDefault(require("ffmpeg-static"));
 const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 class AdminUtils {
     constructor() {
         this.sampleRate = 16000;
@@ -21,17 +23,27 @@ class AdminUtils {
     convertToWav(inputPath, outputPath) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
-                if (!ffmpeg_static_1.default) {
-                    return reject(new Error('ffmpeg-static could not find the ffmpeg binary.'));
-                }
+                // Make sure ffmpeg path is set
                 fluent_ffmpeg_1.default.setFfmpegPath(ffmpeg_static_1.default);
-                (0, fluent_ffmpeg_1.default)(inputPath)
+                // Resolve absolute paths
+                const absInput = path_1.default.resolve(inputPath);
+                const absOutput = path_1.default.resolve(outputPath);
+                // Check if input file exists
+                if (!fs_1.default.existsSync(absInput)) {
+                    return reject(new Error(`Input file not found: ${absInput}`));
+                }
+                // Ensure output folder exists
+                const outputDir = path_1.default.dirname(absOutput);
+                if (!fs_1.default.existsSync(outputDir)) {
+                    fs_1.default.mkdirSync(outputDir, { recursive: true });
+                }
+                (0, fluent_ffmpeg_1.default)(absInput)
                     .audioFrequency(this.sampleRate)
                     .audioChannels(1)
                     .format('wav')
-                    .save(outputPath)
-                    .on('end', () => resolve(outputPath))
-                    .on('error', (err) => reject(err));
+                    .on('end', () => resolve(absOutput))
+                    .on('error', (err) => reject(err))
+                    .save(absOutput);
             });
         });
     }
