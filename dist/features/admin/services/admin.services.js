@@ -110,6 +110,7 @@ class AdminServices extends abstract_services_1.default {
             }
             finally {
                 fs_1.default.unlinkSync(originalPath);
+                fs_1.default.unlinkSync(wavPath);
             }
         });
     }

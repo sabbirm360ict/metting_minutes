@@ -116,6 +116,7 @@ class AdminServices extends AbstractServices {
       };
     } finally {
       fs.unlinkSync(originalPath);
+      fs.unlinkSync(wavPath);
     }
   }
 }
