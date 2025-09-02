@@ -4,38 +4,26 @@ import fs from 'fs';
 import path from 'path';
 
 export default class AdminUtils {
-  private sampleRate: number = 16000;
+  private static sampleRate = 16000;
 
-  public async convertToWav(
-    inputPath: string,
-    outputPath: string
-  ): Promise<string> {
+  static convertToWav(inputPath: string, outputPath: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      // Make sure ffmpeg path is set
-      ffmpeg.setFfmpegPath(ffmpegPath as string);
-
-      // Resolve absolute paths
-      const absInput = path.resolve(inputPath);
-      const absOutput = path.resolve(outputPath);
-
-      // Check if input file exists
-      if (!fs.existsSync(absInput)) {
-        return reject(new Error(`Input file not found: ${absInput}`));
+      if (!fs.existsSync(inputPath)) {
+        return reject(new Error(`Input file not found: ${inputPath}`));
       }
 
-      // Ensure output folder exists
-      const outputDir = path.dirname(absOutput);
+      const outputDir = path.dirname(outputPath);
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
       }
 
-      ffmpeg(absInput)
+      ffmpeg(inputPath)
         .audioFrequency(this.sampleRate)
         .audioChannels(1)
         .format('wav')
-        .on('end', () => resolve(absOutput))
+        .on('end', () => resolve(outputPath))
         .on('error', (err) => reject(err))
-        .save(absOutput);
+        .save(outputPath);
     });
   }
 }

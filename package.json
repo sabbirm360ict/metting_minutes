@@ -11,12 +11,13 @@
   "author": "Sabbir Hosen",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/speech": "^7.2.0",
     "aws-sdk": "^2.1545.0",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
     "exceljs": "^4.4.0",
-    "express": "^4.18.2",
+    "express": "^4.21.2",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.3",
     "form-data": "^4.0.4",
@@ -27,6 +28,8 @@
     "multer": "^1.4.5-lts.1",
     "multer-s3": "^3.0.1",
     "node-fetch": "^3.3.2",
+    "node-summarizer": "^1.0.7",
+    "openai": "^5.15.0",
     "pg": "^8.16.3"
   },
   "devDependencies": {
