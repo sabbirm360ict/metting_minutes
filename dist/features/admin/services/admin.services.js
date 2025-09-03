@@ -12,8 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const child_process_1 = require("child_process");
-const fs_1 = __importDefault(require("fs"));
 const abstract_services_1 = __importDefault(require("../../../abstract/abstract.services"));
 const customError_1 = __importDefault(require("../../../utils/lib/customError"));
 class AdminServices extends abstract_services_1.default {
@@ -25,22 +23,6 @@ class AdminServices extends abstract_services_1.default {
                 throw new customError_1.default(`Upload a file`, this.StatusCode.HTTP_NOT_FOUND);
             }
             const filePath = file.path;
-            // Run Python script
-            const pythonProcess = (0, child_process_1.spawn)('python', ['summarize.py', filePath]);
-            let summary = '';
-            let errorMessage = '';
-            // Capture stdout (summary)
-            pythonProcess.stdout.on('data', (data) => {
-                summary += data.toString();
-            });
-            // Capture stderr (errors)
-            pythonProcess.stderr.on('data', (data) => {
-                errorMessage += data.toString();
-            });
-            // Handle process completion
-            pythonProcess.on('close', (code) => __awaiter(this, void 0, void 0, function* () {
-                fs_1.default.unlinkSync(filePath);
-            }));
             return {
                 success: true,
                 code: this.StatusCode.HTTP_SUCCESSFUL,

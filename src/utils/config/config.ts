@@ -15,6 +15,7 @@ interface ENV {
   JWT_SECRET: string | undefined;
   OPENAI_API_KEY: string | undefined;
   HUGGING_FACE_API_KEY: string | undefined;
+  GEMINI_API_KEY: string | undefined;
 }
 
 interface Config {
@@ -29,6 +30,7 @@ interface Config {
   JWT_SECRET: string;
   OPENAI_API_KEY: string;
   HUGGING_FACE_API_KEY: string;
+  GEMINI_API_KEY: string;
 }
 
 const getConfig = (): ENV => {
@@ -44,6 +46,7 @@ const getConfig = (): ENV => {
     JWT_SECRET: process.env.JWT_SECRET,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     HUGGING_FACE_API_KEY: process.env.HUGGING_FACE_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   };
 };
 

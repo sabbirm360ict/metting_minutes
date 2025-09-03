@@ -19,6 +19,7 @@ const getConfig = () => {
         JWT_SECRET: process.env.JWT_SECRET,
         OPENAI_API_KEY: process.env.OPENAI_API_KEY,
         HUGGING_FACE_API_KEY: process.env.HUGGING_FACE_API_KEY,
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     };
 };
 const getSanitizeConfig = (config) => {
