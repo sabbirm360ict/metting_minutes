@@ -1,10 +1,13 @@
-import ffmpegPath from 'ffmpeg-static';
-import ffmpeg from 'fluent-ffmpeg';
-import fs from 'fs';
-import path from 'path';
-import MeetingTranscriber from './meetingTranscriber.utils';
 import MeetingSummarizer from './meetingSummarizer.utils';
-import { MeetingMinutes } from './meetingMinutesGenerator.utils';
+import MeetingTranscriber from './meetingTranscriber.utils';
+
+export interface MeetingMinutes {
+  date: string;
+  time: string;
+  transcript: string;
+  summary: string;
+  status: string;
+}
 
 class MeetingMinutesGenerator {
   private transcriber: MeetingTranscriber;
@@ -45,3 +48,5 @@ class MeetingMinutesGenerator {
     return meetingMinutes;
   }
 }
+
+export default MeetingMinutesGenerator;

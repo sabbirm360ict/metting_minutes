@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const meetingTranscriber_utils_1 = __importDefault(require("./meetingTranscriber.utils"));
 const meetingSummarizer_utils_1 = __importDefault(require("./meetingSummarizer.utils"));
+const meetingTranscriber_utils_1 = __importDefault(require("./meetingTranscriber.utils"));
 class MeetingMinutesGenerator {
     constructor(apiKey) {
         this.transcriber = new meetingTranscriber_utils_1.default(apiKey);
@@ -45,3 +45,4 @@ class MeetingMinutesGenerator {
         });
     }
 }
+exports.default = MeetingMinutesGenerator;
