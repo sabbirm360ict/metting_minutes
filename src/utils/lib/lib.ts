@@ -4,7 +4,6 @@ import nodemailer from 'nodemailer';
 import config from '../config/config';
 import { idType } from '../interfaces/common';
 import { allStrings } from '../miscellaneous/constants';
-import axios from 'axios';
 
 class Lib {
   public static async genOtp(length: number) {

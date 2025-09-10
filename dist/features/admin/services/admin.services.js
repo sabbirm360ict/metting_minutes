@@ -12,11 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
 const abstract_services_1 = __importDefault(require("../../../abstract/abstract.services"));
 const config_1 = __importDefault(require("../../../utils/config/config"));
 const customError_1 = __importDefault(require("../../../utils/lib/customError"));
-const meetingMinutesGenerator_utils_1 = __importDefault(require("../utils/meetingMinutesGenerator.utils"));
-const fs_1 = __importDefault(require("fs"));
+const openai_1 = __importDefault(require("openai"));
+const axios_1 = __importDefault(require("axios"));
+const form_data_1 = __importDefault(require("form-data"));
 class AdminServices extends abstract_services_1.default {
     constructor() {
         super();
@@ -27,18 +29,21 @@ class AdminServices extends abstract_services_1.default {
             }
             const filePath = file.path;
             console.log(`Received file path: ${filePath}`);
-            const meetingMinutes = yield this.generator.generateMinutes(filePath);
-            // In a real application, you might also delete the file after processing
+            const formData = new form_data_1.default();
+            formData.append('file', fs_1.default.createReadStream(filePath));
+            console.log({ formData });
+            const response = yield axios_1.default.post('https://api-inference.huggingface.co/models/openai/whisper-small', formData, {
+                headers: Object.assign({ Authorization: `Bearer ${config_1.default.HUGGING_FACE_API_KEY}` }, formData.getHeaders()),
+            });
             fs_1.default.unlinkSync(filePath);
             return {
                 success: true,
                 code: this.StatusCode.HTTP_SUCCESSFUL,
                 message: this.ResMsg.HTTP_SUCCESSFUL,
-                data: meetingMinutes,
+                data: response,
             };
         });
-        this.apiKey = config_1.default.GEMINI_API_KEY;
-        this.generator = new meetingMinutesGenerator_utils_1.default(this.apiKey);
+        this.openai = new openai_1.default({ apiKey: config_1.default.OPENAI_API_KEY });
     }
 }
 exports.default = AdminServices;

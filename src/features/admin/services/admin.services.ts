@@ -1,20 +1,18 @@
 import { Request } from 'express';
+import fs from 'fs';
 import AbstractServices from '../../../abstract/abstract.services';
 import config from '../../../utils/config/config';
 import CustomError from '../../../utils/lib/customError';
-import MeetingMinutesGenerator, {
-  MeetingMinutes,
-} from '../utils/meetingMinutesGenerator.utils';
-import fs from 'fs';
+import OpenAI from 'openai';
+import axios from 'axios';
+import FormData from 'form-data';
 
 export default class AdminServices extends AbstractServices {
-  private readonly apiKey: string;
-  private readonly generator: MeetingMinutesGenerator;
+  private openai: OpenAI;
   constructor() {
     super();
 
-    this.apiKey = config.GEMINI_API_KEY;
-    this.generator = new MeetingMinutesGenerator(this.apiKey);
+    this.openai = new OpenAI({ apiKey: config.OPENAI_API_KEY });
   }
 
   public processAudio = async (req: Request) => {
@@ -26,18 +24,29 @@ export default class AdminServices extends AbstractServices {
     const filePath = file.path;
     console.log(`Received file path: ${filePath}`);
 
-    const meetingMinutes: MeetingMinutes = await this.generator.generateMinutes(
-      filePath
+    const formData = new FormData();
+    formData.append('file', fs.createReadStream(filePath));
+
+    console.log({ formData });
+
+    const response = await axios.post(
+      'https://api-inference.huggingface.co/models/openai/whisper-small',
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${config.HUGGING_FACE_API_KEY}`,
+          ...formData.getHeaders(),
+        },
+      }
     );
 
-    // In a real application, you might also delete the file after processing
     fs.unlinkSync(filePath);
 
     return {
       success: true,
       code: this.StatusCode.HTTP_SUCCESSFUL,
       message: this.ResMsg.HTTP_SUCCESSFUL,
-      data: meetingMinutes,
+      data: response,
     };
   };
 }
