@@ -12,16 +12,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = __importDefault(require("fs"));
+const fs_extra_1 = __importDefault(require("fs-extra"));
+const openai_1 = __importDefault(require("openai"));
+const path_1 = __importDefault(require("path"));
 const abstract_services_1 = __importDefault(require("../../../abstract/abstract.services"));
 const config_1 = __importDefault(require("../../../utils/config/config"));
 const customError_1 = __importDefault(require("../../../utils/lib/customError"));
-const openai_1 = __importDefault(require("openai"));
-const axios_1 = __importDefault(require("axios"));
-const form_data_1 = __importDefault(require("form-data"));
+const fluent_ffmpeg_1 = __importDefault(require("fluent-ffmpeg"));
 class AdminServices extends abstract_services_1.default {
     constructor() {
         super();
+        this.prepareAudio = (filePath, chunkDurationSec = 1800) => __awaiter(this, void 0, void 0, function* () {
+            const chunksDir = path_1.default.join('uploads', 'chunks');
+            yield fs_extra_1.default.ensureDir(chunksDir);
+            yield fs_extra_1.default.emptyDir(chunksDir);
+            // Compress to mono 16kHz MP3
+            const compressedPath = path_1.default.join('uploads', 'compressed.mp3');
+            yield new Promise((resolve, reject) => {
+                (0, fluent_ffmpeg_1.default)(filePath)
+                    .audioCodec('libmp3lame')
+                    .audioChannels(1)
+                    .audioFrequency(16000)
+                    .format('mp3')
+                    .save(compressedPath)
+                    .on('end', resolve)
+                    .on('error', reject);
+            });
+            // Split into chunks
+            return new Promise((resolve, reject) => {
+                (0, fluent_ffmpeg_1.default)(compressedPath)
+                    .output(path_1.default.join(chunksDir, 'chunk_%03d.mp3'))
+                    .audioCodec('copy')
+                    .format('mp3')
+                    .outputOptions([`-f segment`, `-segment_time ${chunkDurationSec}`])
+                    .on('end', () => __awaiter(this, void 0, void 0, function* () {
+                    const files = (yield fs_extra_1.default.readdir(chunksDir))
+                        .map((f) => path_1.default.join(chunksDir, f))
+                        .sort();
+                    resolve(files);
+                }))
+                    .on('error', reject)
+                    .run();
+            });
+        });
         this.processAudio = (req) => __awaiter(this, void 0, void 0, function* () {
             const file = req.file;
             if (!file) {
@@ -29,18 +62,30 @@ class AdminServices extends abstract_services_1.default {
             }
             const filePath = file.path;
             console.log(`Received file path: ${filePath}`);
-            const formData = new form_data_1.default();
-            formData.append('file', fs_1.default.createReadStream(filePath));
-            console.log({ formData });
-            const response = yield axios_1.default.post('https://api-inference.huggingface.co/models/openai/whisper-small', formData, {
-                headers: Object.assign({ Authorization: `Bearer ${config_1.default.HUGGING_FACE_API_KEY}` }, formData.getHeaders()),
+            let fullTranscript = '';
+            const transcription = yield this.openai.audio.transcriptions.create({
+                file: fs_extra_1.default.createReadStream(file.path),
+                model: 'whisper-1',
             });
-            fs_1.default.unlinkSync(filePath);
+            fullTranscript += transcription.text + '\n';
+            fs_extra_1.default.unlinkSync(file.path); // delete after processing
+            // Optional: summarize with GPT-4o-mini
+            const summaryResp = yield this.openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You summarize meeting transcripts into professional minutes with Agenda, Key Points, Decisions, and Action Items.',
+                    },
+                    { role: 'user', content: `Transcript:\n\n${fullTranscript}` },
+                ],
+            });
+            const meetingMinutes = summaryResp.choices[0].message.content;
             return {
                 success: true,
                 code: this.StatusCode.HTTP_SUCCESSFUL,
                 message: this.ResMsg.HTTP_SUCCESSFUL,
-                data: response,
+                data: { transcript: fullTranscript, meetingMinutes },
             };
         });
         this.openai = new openai_1.default({ apiKey: config_1.default.OPENAI_API_KEY });
