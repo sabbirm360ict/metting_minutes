@@ -62,13 +62,13 @@ class AdminServices extends abstract_services_1.default {
             }
             const filePath = file.path;
             console.log(`Received file path: ${filePath}`);
-            let fullTranscript = '';
             const transcription = yield this.openai.audio.transcriptions.create({
                 file: fs_extra_1.default.createReadStream(file.path),
                 model: 'whisper-1',
             });
-            fullTranscript += transcription.text + '\n';
             fs_extra_1.default.unlinkSync(file.path); // delete after processing
+            console.log({ transcription });
+            const transcriptionText = transcription.text;
             // Optional: summarize with GPT-4o-mini
             const summaryResp = yield this.openai.chat.completions.create({
                 model: 'gpt-4o-mini',
@@ -77,7 +77,7 @@ class AdminServices extends abstract_services_1.default {
                         role: 'system',
                         content: 'You summarize meeting transcripts into professional minutes with Agenda, Key Points, Decisions, and Action Items.',
                     },
-                    { role: 'user', content: `Transcript:\n\n${fullTranscript}` },
+                    { role: 'user', content: `Transcript:\n\n${transcriptionText}` },
                 ],
             });
             const meetingMinutes = summaryResp.choices[0].message.content;
@@ -85,7 +85,7 @@ class AdminServices extends abstract_services_1.default {
                 success: true,
                 code: this.StatusCode.HTTP_SUCCESSFUL,
                 message: this.ResMsg.HTTP_SUCCESSFUL,
-                data: { transcript: fullTranscript, meetingMinutes },
+                data: { transcript: transcriptionText, meetingMinutes, transcription },
             };
         });
         this.openai = new openai_1.default({ apiKey: config_1.default.OPENAI_API_KEY });

@@ -64,14 +64,16 @@ export default class AdminServices extends AbstractServices {
 
     console.log(`Received file path: ${filePath}`);
 
-    let fullTranscript = '';
-
     const transcription = await this.openai.audio.transcriptions.create({
       file: fs.createReadStream(file.path),
       model: 'whisper-1',
     });
-    fullTranscript += transcription.text + '\n';
+
     fs.unlinkSync(file.path); // delete after processing
+
+    console.log({ transcription });
+
+    const transcriptionText = transcription.text;
 
     // Optional: summarize with GPT-4o-mini
     const summaryResp = await this.openai.chat.completions.create({
@@ -82,7 +84,7 @@ export default class AdminServices extends AbstractServices {
           content:
             'You summarize meeting transcripts into professional minutes with Agenda, Key Points, Decisions, and Action Items.',
         },
-        { role: 'user', content: `Transcript:\n\n${fullTranscript}` },
+        { role: 'user', content: `Transcript:\n\n${transcriptionText}` },
       ],
     });
 
@@ -92,7 +94,7 @@ export default class AdminServices extends AbstractServices {
       success: true,
       code: this.StatusCode.HTTP_SUCCESSFUL,
       message: this.ResMsg.HTTP_SUCCESSFUL,
-      data: { transcript: fullTranscript, meetingMinutes },
+      data: { transcript: transcriptionText, meetingMinutes, transcription },
     };
   };
 }
